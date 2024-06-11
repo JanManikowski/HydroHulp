@@ -100,8 +100,8 @@ const App: React.FC = () => {
             <Text className="text-lg text-white">Bekijk uw dagoverzicht</Text>
           </TouchableOpacity>
 
-          <Text className="text-lg text-gray-700 mb-5">Progressie</Text>
-          <Text className="text-sm text-gray-600 mb-2">Overzicht van de hoeveelheid vocht voor vandaag.</Text>
+          <Text className="text-lg text-gray-700 mb-5">Voortgang</Text>
+          <Text className="text-sm text-gray-600 mb-2">De hoeveelheid milliliter vochtinname van vandaag.</Text>
           <Progress.Bar progress={progress} width={null} color={progressBarColor} />
           <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ML</Text>
         </View>
