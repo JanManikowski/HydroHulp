@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 
@@ -48,47 +48,43 @@ const App: React.FC = () => {
   const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="p-4">
+        <View className="flex-row items-center mb-4">
           <View>
-            <Text style={styles.greeting}>Hallo,</Text>
-            <Text style={styles.userName}>Hendrik de Vries</Text>
+            <Text className="text-3xl text-gray-700">Hallo,</Text>
+            <Text className="text-3xl font-bold text-gray-700">Hendrik de Vries</Text>
           </View>
           <Image
             source={{ uri: 'https://via.placeholder.com/150' }}
-            style={styles.userImage}
-            />
+            className="w-12 h-12 rounded-full ml-auto"
+          />
         </View>
-        <View style={styles.container}>
-          <View style={styles.cardRow}>
-            {/* <TouchableOpacity style={styles.cardButton}>
-              <Image source={require('./icon.png')} style={styles.cardIcon} />
-              <Text style={styles.cardButtonText}>Drink schema</Text>
-            </TouchableOpacity> */}
-            <TouchableOpacity style={styles.cardButton}>
-              <Image source={require('./icon.png')} style={styles.cardIcon} />
-              <Text style={styles.cardButtonText}>Glas water</Text>
-              <View style={styles.quantityControl}>
-                <Text style={styles.quantityText}>1</Text>
+        <View className="flex-1">
+          <View className="flex-row justify-between mb-4">
+            <TouchableOpacity className="bg-blue-200 p-5 rounded-lg flex-1 mx-2">
+              <Image source={require('./icon.png')} className="w-12 h-12" />
+              <Text className="text-lg text-gray-700 mt-2">Glas water</Text>
+              <View className="flex-row items-center">
+                <Text className="text-lg text-gray-700">1</Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.productInfo}>
-            <Text style={styles.lastAddedText}>Laatst toegevoegd</Text>
+          <View className="bg-blue-200 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-gray-700 mb-2">Laatst toegevoegd</Text>
             {latestProduct && (
-              <View style={styles.latestProduct}>
-                <Image source={{ uri: latestProduct.imageUrl }} style={styles.productImage} />
-                <View style={styles.productDetails}>
-                  <Text style={styles.productName}>{latestProduct.name}</Text>
-                  <Text style={styles.productQuantity}>{latestProduct.quantity}ml</Text>
-                  <View style={styles.quantityControl}>
-                    <TouchableOpacity style={styles.addButton}>
-                      <Text style={styles.addButtonText}>-</Text>
+              <View className="flex-row items-center">
+                <Image source={{ uri: latestProduct.imageUrl }} className="w-12 h-12 rounded mr-2" />
+                <View className="flex-1 flex-row justify-between items-center">
+                  <Text className="text-lg text-gray-700">{latestProduct.name}</Text>
+                  <Text className="text-lg text-gray-700">{latestProduct.quantity}ml</Text>
+                  <View className="flex-row items-center">
+                    <TouchableOpacity className="bg-blue-500 rounded p-2 mr-2">
+                      <Text className="text-lg text-white">-</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.addButton}>
-                      <Text style={styles.addButtonText}>+</Text>
+                    <TouchableOpacity className="bg-blue-500 rounded p-2">
+                      <Text className="text-lg text-white">+</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -96,162 +92,22 @@ const App: React.FC = () => {
             )}
           </View>
 
-          <View className="bg-primary">         
+          <View className="bg-primary mb-4">         
             <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam, doloremque.</Text>
           </View>
 
-          <TouchableOpacity style={styles.overviewButton}>
-            <Text style={styles.overviewButtonText}>Bekijk uw dagoverzicht</Text>
+          <TouchableOpacity className="bg-blue-600 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-white">Bekijk uw dagoverzicht</Text>
           </TouchableOpacity>
 
-          <Text style={styles.progressText}>Progressie</Text>
-          <Text style={styles.progressSubText}>Overzicht van de hoeveelheid vocht voor vandaag.</Text>
-          <Progress.Bar progress={progress} width={null} color={progressBarColor} style={styles.progressBar} />
-          <Text style={styles.totalText}>{totalQuantity} / {goal} ML</Text>
+          <Text className="text-lg text-gray-700 mb-5">Progressie</Text>
+          <Text className="text-sm text-gray-600 mb-2">Overzicht van de hoeveelheid vocht voor vandaag.</Text>
+          <Progress.Bar progress={progress} width={null} color={progressBarColor} />
+          <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ML</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  greeting: {
-    fontSize: 24,
-    color: '#333',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 10,
-  },
-  userImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginLeft: 'auto',
-  },
-  container: {
-    flex: 1,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  cardButton: {
-    backgroundColor: '#eaf4fc',
-    padding: 20,
-    borderRadius: 10,
-    flex: 1,
-    marginHorizontal: 10,
-    alignItems: 'center',
-  },
-  cardButtonText: {
-    fontSize: 18,
-    color: '#333',
-    marginTop: 10,
-  },
-  cardIcon: {
-    width: 50,
-    height: 50,
-  },
-  productInfo: {
-    backgroundColor: '#eaf4fc',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  lastAddedText: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
-  },
-  latestProduct: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  productDetails: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  productName: {
-    fontSize: 18,
-    color: '#333',
-  },
-  productQuantity: {
-    fontSize: 18,
-    color: '#333',
-  },
-  quantityControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  addButton: {
-    backgroundColor: '#8dd6ed',
-    borderRadius: 5,
-    padding: 10,
-    marginHorizontal: 5,
-  },
-  addButtonText: {
-    fontSize: 18,
-    color: '#fff',
-  },
-  overviewButton: {
-    backgroundColor: '#1a73e8',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  overviewButtonText: {
-    fontSize: 18,
-    color: '#fff',
-  },
-  progressText: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 5,
-  },
-  progressSubText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-  },
-  progressBar: {
-    marginBottom: 20,
-  },
-  totalText: {
-    fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-  },
-  quantityText: {
-    fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-  },
-});
 
 export default App;
