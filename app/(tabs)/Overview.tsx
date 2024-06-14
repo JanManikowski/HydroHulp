@@ -51,7 +51,7 @@ const ListScreen: React.FC = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Hallo</Text>
-          <Text style={styles.userName}>Park Jimin</Text>
+          <Text style={styles.userName}>Hendrik de Vries</Text>
         </View>
         <Image
           source={{ uri: 'https://via.placeholder.com/150' }}
@@ -95,13 +95,13 @@ const ListScreen: React.FC = () => {
 
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Totaal</Text>
-          <Text style={styles.totalAmountText}>{totalQuantity}ml</Text>
+          <Text style={styles.totalAmountText}>{totalQuantity} ml</Text>
         </View>
 
         <Text style={styles.progressText}>Progressie</Text>
         <Text style={styles.progressSubText}>Overzicht van de hoeveelheid vocht voor vandaag.</Text>
         <Progress.Bar progress={progress} width={null} color={progressBarColor} style={styles.progressBar} />
-        <Text style={styles.totalText}>{totalQuantity} / {goal} ML</Text>
+        <Text style={styles.totalText}>{totalQuantity} / {goal} ml</Text>
       </View>
     </ScrollView>
   );

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
-import Slider from '@react-native-community/slider'; // Import the Slider component
+import Slider from '@react-native-community/slider';
+// import 'nativewind';
 
 interface ProductInfo {
   name: string;
   quantity: number;
-  imageUrl: string; // Add imageUrl to the ProductInfo interface
+  imageUrl: string;
 }
 
 const App: React.FC = () => {
@@ -18,7 +19,7 @@ const App: React.FC = () => {
   const [productList, setProductList] = useState<ProductInfo[]>([]);
   const [cupSize, setCupSize] = useState<number | null>(null);
   const [isCupInputVisible, setIsCupInputVisible] = useState<boolean>(true);
-  const [sliderValue, setSliderValue] = useState<number>(100); // Start the slider at 100%
+  const [sliderValue, setSliderValue] = useState<number>(100); 
   const goal = 1500;
 
   useEffect(() => {
@@ -39,18 +40,18 @@ const App: React.FC = () => {
   }, []);
 
   const fetchProductDetails = async () => {
-    if (!barcode.trim()) return alert('Please enter a barcode.');
+    if (!barcode.trim()) return alert('Vul een barcode in.');
     setIsLoading(true);
     try {
       const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${barcode}.json`);
       const data = await response.json();
-      if (data.status === 0) return alert('Product not found.'), setProductInfo(null);
+      if (data.status === 0) return alert('Artikel niet gevonden.'), setProductInfo(null);
 
       const quantity = parseFloat(data.product.product_quantity || data.product.serving_quantity || '0') || 0;
-      const imageUrl = data.product.image_url || ''; // Extract the image_url from the API response
+      const imageUrl = data.product.image_url || '';
       setProductInfo({ name: data.product.product_name, quantity, imageUrl });
     } catch (error) {
-      alert('Failed to fetch product details. Please try again.');
+      alert('Het is niet gelukt om de artikel informatie op te halen. Probeer het opnieuw.');
       console.error('Error fetching product:', error);
     } finally {
       setIsLoading(false);
@@ -80,7 +81,7 @@ const App: React.FC = () => {
       setIsCupInputVisible(false);
       await AsyncStorage.setItem('cupSize', cupSize.toString());
     } else {
-      alert('Please enter a valid cup size.');
+      alert('Voeg een valide glasgrootte in');
     }
   };
 
@@ -100,11 +101,11 @@ const App: React.FC = () => {
   const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Product Scanner</Text>
+    <ScrollView contentContainerStyle="flex-grow justify-center items-center p-5 bg-white">
+      <View className="flex-1 w-full justify-center items-center mt-10">
+        <Text className="text-2xl font-bold mb-5 text-primary">Scan hier de barcode</Text>
         <TextInput
-          style={styles.input}
+          className="w-full h-10 border border-primary mb-5 p-2 text-black bg-white"
           onChangeText={setBarcode}
           value={barcode}
           placeholder="Enter barcode"
@@ -112,156 +113,77 @@ const App: React.FC = () => {
           placeholderTextColor="#8dd6ed"
         />
         <TouchableOpacity
-          style={styles.button}
+          className="bg-primary py-2 px-5 rounded-full my-2"
           onPress={fetchProductDetails}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Fetch Product'}</Text>
+          <Text className="text-white text-lg font-bold">{isLoading ? 'Loading...' : 'Haal Artikel Op'}</Text>
         </TouchableOpacity>
         {productInfo && productInfo.name === 'Cup of Water' && productInfo.imageUrl ? (
-          <Image source={require('./glass-of-water.jpg')} style={styles.productImage} />
+          <Image source={require('./glass-of-water.jpg')} className="w-24 h-24 my-2" />
         ) : null}
         {productInfo && productInfo.name !== 'Cup of Water' && (
-          <View style={styles.result}>
-            <Text style={styles.infoText}>Name: {productInfo.name}</Text>
-            <Text style={styles.infoText}>Quantity: {productInfo.quantity}</Text>
+          <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
+            <Text className="text-lg text-black mb-2">Name: {productInfo.name}</Text>
+            <Text className="text-lg text-black mb-2">Quantity: {productInfo.quantity}</Text>
             {productInfo.imageUrl ? (
-              <Image source={{ uri: productInfo.imageUrl }} style={styles.productImage} />
+              <Image source={{ uri: productInfo.imageUrl }} className="w-24 h-24 my-2" />
             ) : null}
-            <TouchableOpacity style={styles.button} onPress={() => addToTotal(productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-              <Text style={styles.buttonText}>Add to Total</Text>
+            <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={() => addToTotal(productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
+              <Text className="text-white text-lg font-bold">Add to Total</Text>
             </TouchableOpacity>
           </View>
         )}
         {productInfo && productInfo.name !== 'Cup of Water' && (
-          <View style={styles.sliderContainer}>
-            <Text style={styles.infoText}>Adjust Quantity:</Text>
+          <View className="mt-5 w-full items-center">
+            <Text className="text-lg text-black mb-2">Adjust Quantity:</Text>
             <Slider
-              style={styles.slider}
+              style={{ width: '100%', height: 40 }}
               minimumValue={0}
-              maximumValue={100} // Maximum value set to 100 for full percentage
+              maximumValue={100}
               step={1}
               value={sliderValue}
               onValueChange={(value) => setSliderValue(value)}
             />
-            <Text style={styles.infoText}>Selected Quantity: {sliderValue}%</Text>
-            <TouchableOpacity style={styles.button} onPress={() => addToTotal((sliderValue / 100) * productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-              <Text style={styles.buttonText}>Add Selected Quantity to Total</Text>
+            <Text className="text-lg text-black mb-2">Selected Quantity: {sliderValue}%</Text>
+            <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={() => addToTotal((sliderValue / 100) * productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
+              <Text className="text-white text-lg font-bold">Add Selected Quantity to Total</Text>
             </TouchableOpacity>
           </View>
         )}
         {isCupInputVisible ? (
-          <View style={styles.result}>
+          <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
             <TextInput
-              style={styles.input}
+              className="w-full h-10 border border-primary mb-5 p-2 text-black bg-white"
               onChangeText={(text) => setCupSize(parseFloat(text))}
               value={cupSize ? cupSize.toString() : ''}
-              placeholder="Enter cup size in ml"
+              placeholder="Vul in glasgrootte in ml"
               keyboardType="numeric"
               placeholderTextColor="#8dd6ed"
             />
-            <TouchableOpacity style={styles.button} onPress={saveCupSize}>
-              <Text style={styles.buttonText}>Save Cup</Text>
+            <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={saveCupSize}>
+              <Text className="text-white text-lg font-bold">Save Cup</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.result}>
-            <Text style={styles.infoText}>Cup Size: {cupSize} ml</Text>
-            <TouchableOpacity style={styles.button} onPress={addCupToTotal}>
-              <Text style={styles.buttonText}>Add 1 Cup</Text>
+          <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
+            <Text className="text-lg text-black mb-2">Glas Grote: {cupSize} ml</Text>
+            <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={addCupToTotal}>
+              <Text className="text-white text-lg font-bold">Voeg 1 Glas Toe</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={editCupSize}>
-              <Text style={styles.buttonText}>Edit Cup Size</Text>
+            <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={editCupSize}>
+              <Text className="text-white text-lg font-bold">Glas grootte aanpassen</Text>
             </TouchableOpacity>
           </View>
         )}
         <Progress.Bar progress={progress} width={400} color={progressBarColor} />
-        <Text style={styles.totalText}>Total Quantity: {totalQuantity} ml / {goal} ml</Text>
-        <TouchableOpacity style={styles.button} onPress={clearAll}>
-          <Text style={styles.buttonText}>Clear All</Text>
+        <Text className="text-xl mt-5 text-primary">Totaal: {totalQuantity} ml / {goal} ml</Text>
+        <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={clearAll}>
+          <Text className="text-white text-lg font-bold">Alles verwijderen</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#ffffff',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#8dd6ed',
-  },
-  input: {
-    width: '100%',
-    height: 40,
-    borderColor: '#8dd6ed',
-    borderWidth: 1,
-    marginBottom: 20,
-    padding: 10,
-    color: '#000000',
-    backgroundColor: '#ffffff',
-  },
-  button: {
-    backgroundColor: '#8dd6ed',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  result: {
-    marginTop: 20,
-    padding: 10,
-    borderColor: '#8dd6ed',
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: '#ffffff',
-    width: '100%',
-    alignItems: 'center',
-  },
-  productImage: {
-    width: 100,
-    height: 100,
-    marginVertical: 10,
-  },
-  sliderContainer: {
-    marginTop: 20,
-    width: '100%',
-    alignItems: 'center',
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  infoText: {
-    fontSize: 16,
-    marginVertical: 5,
-    color: '#000000',
-  },
-  totalText: {
-    fontSize: 18,
-    marginTop: 20,
-    color: '#8dd6ed',
-  },
-});
 
 export default App;

@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import dayjs from 'dayjs';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 interface ProductInfo {
   name: string;
@@ -102,7 +104,7 @@ const App: React.FC = () => {
 
   const addCupToTotal = () => {
     if (cupSize) {
-      addToTotal(cupSize, 'Cup of Water', './glass-of-water.jpg', cupSize);
+      addToTotal(cupSize, 'Glas Water', './glass-of-water.jpg', cupSize);
     }
   };
 
@@ -197,18 +199,18 @@ const App: React.FC = () => {
             </View>
           )}
 
-          <View className="bg-primary mb-4">         
+          {/* <View className="bg-primary mb-4">         
             <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam, doloremque.</Text>
-          </View>
+          </View> */}
 
-          <TouchableOpacity className="bg-blue-600 p-5 rounded-lg mb-4">
+          <TouchableOpacity className="bg-blue-600 p-5 rounded-lg mb-4" onPress={() => navigation.navigate('Details')}>
             <Text className="text-lg text-white">Bekijk uw dagoverzicht</Text>
           </TouchableOpacity>
 
           <Text className="text-lg text-gray-700 mb-5">Voortgang</Text>
           <Text className="text-sm text-gray-600 mb-2">De hoeveelheid milliliter vochtinname van vandaag.</Text>
           <Progress.Bar progress={progress} width={null} color={progressBarColor} />
-          <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ML</Text>
+          <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ml</Text>
         </View>
 
         {showManualInput && (
