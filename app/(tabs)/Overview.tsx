@@ -1,54 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
+import { useFocusEffect } from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 interface ProductInfo {
   name: string;
   quantity: number;
   imageUrl: string;
+  date: string; // Ensure date is part of the interface
 }
 
-const App: React.FC = () => {
-  const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
+const ListScreen: React.FC = () => {
   const [totalQuantity, setTotalQuantity] = useState<number>(0);
   const [productList, setProductList] = useState<ProductInfo[]>([]);
-  const [latestProduct, setLatestProduct] = useState<ProductInfo | null>(null);
+  const [currentDate, setCurrentDate] = useState(dayjs());
   const goal = 1500;
 
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const [total, list] = await Promise.all([
-        AsyncStorage.getItem('totalQuantity'),
-        AsyncStorage.getItem('productList')
-      ]);
-      if (total) setTotalQuantity(parseFloat(total));
-      if (list) {
-        const parsedList = JSON.parse(list);
-        setProductList(parsedList);
-        setLatestProduct(parsedList[parsedList.length - 1] || null);
-      }
-    };
-    loadInitialData();
-  }, []);
-
-  const addToTotal = async (quantity: number, name: string, imageUrl: string) => {
-    const newTotal = totalQuantity + quantity;
-    const newList = [...productList, { name, quantity, imageUrl }];
-    setTotalQuantity(newTotal);
-    setProductList(newList);
-    setLatestProduct(newList[newList.length - 1]);
-    await Promise.all([
-      AsyncStorage.setItem('totalQuantity', newTotal.toString()),
-      AsyncStorage.setItem('productList', JSON.stringify(newList))
+  const loadInitialData = async () => {
+    const [total, list] = await Promise.all([
+      AsyncStorage.getItem('totalQuantity'),
+      AsyncStorage.getItem('productList')
     ]);
-  };
-
-  const addCupToTotal = () => {
-    if (cupSize) {
-      addToTotal(cupSize, 'Cup of Water', require('./glass-of-water.jpg'));
+    if (total) setTotalQuantity(parseFloat(total));
+    if (list) {
+      const parsedList = JSON.parse(list);
+      setProductList(parsedList);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadInitialData();
+    }, [])
+  );
+
+  const changeDate = (days: number) => {
+    setCurrentDate(currentDate.add(days, 'day'));
+  };
+
+  // Filter products by current date
+  const filteredProducts = productList.filter(product => dayjs(product.date).isSame(currentDate, 'day'));
 
   const progress = totalQuantity / goal;
   const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
@@ -67,19 +60,19 @@ const App: React.FC = () => {
       </View>
 
       <View style={styles.dateContainer}>
-        <TouchableOpacity style={styles.dateButton}>
+        <TouchableOpacity style={styles.dateButton} onPress={() => changeDate(-1)}>
           <Text style={styles.dateButtonText}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.dateText}>Vandaag</Text>
-        <TouchableOpacity style={styles.dateButton}>
+        <TouchableOpacity style={styles.dateButton} onPress={() => changeDate(1)}>
           <Text style={styles.dateButtonText}>{'>'}</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.dateSubText}>04-06-2024</Text>
+      <Text style={styles.dateSubText}>{currentDate.format('DD-MM-YYYY')}</Text>
 
       <View style={styles.container}>
         <Text style={styles.overviewText}>Dagoverzicht</Text>
-        {productList.map((product, index) => (
+        {filteredProducts.map((product, index) => (
           <View key={index} style={styles.productCard}>
             <Image source={product.name === 'Cup of Water' ? require('./glass-of-water.jpg') : { uri: product.imageUrl }} style={styles.productImage} />
             <View style={styles.productInfo}>
@@ -260,4 +253,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default App;
+export default ListScreen;
