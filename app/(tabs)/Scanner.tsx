@@ -4,11 +4,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import Slider from '@react-native-community/slider';
 // import 'nativewind';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+import dayjs from 'dayjs';
 
 interface ProductInfo {
   name: string;
   quantity: number;
+  originalQuantity: number; // Added field for original quantity
   imageUrl: string;
+  date: string;
 }
 
 const App: React.FC = () => {
@@ -19,7 +23,13 @@ const App: React.FC = () => {
   const [productList, setProductList] = useState<ProductInfo[]>([]);
   const [cupSize, setCupSize] = useState<number | null>(null);
   const [isCupInputVisible, setIsCupInputVisible] = useState<boolean>(true);
-  const [sliderValue, setSliderValue] = useState<number>(100); 
+  const [sliderValue, setSliderValue] = useState<number>(0);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState<boolean>(false);
+  const [isCameraVisible, setIsCameraVisible] = useState<boolean>(false);
+  const [showManualInput, setShowManualInput] = useState<boolean>(false);
+  const [manualBarcode, setManualBarcode] = useState<string>('');
+  
   const goal = 1500;
 
   useEffect(() => {
@@ -39,9 +49,23 @@ const App: React.FC = () => {
     loadInitialData();
   }, []);
 
-  const fetchProductDetails = async () => {
-    if (!barcode.trim()) return alert('Vul een barcode in.');
+  useEffect(() => {
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const handleBarCodeScanned = ({ type, data }) => {
+    setScanned(true);
+    setBarcode(data);
+    setIsCameraVisible(false);
+    fetchProductDetails(data);
+  };
+
+  const fetchProductDetails = async (barcode: string) => {
     setIsLoading(true);
+    setShowManualInput(false);
     try {
       const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${barcode}.json`);
       const data = await response.json();
@@ -49,30 +73,36 @@ const App: React.FC = () => {
 
       const quantity = parseFloat(data.product.product_quantity || data.product.serving_quantity || '0') || 0;
       const imageUrl = data.product.image_url || '';
-      setProductInfo({ name: data.product.product_name, quantity, imageUrl });
+      setProductInfo({ name: data.product.product_name, quantity, originalQuantity: quantity, imageUrl, date: dayjs().format('YYYY-MM-DD') });
+      setSliderValue(quantity);
     } catch (error) {
       alert('Het is niet gelukt om de artikel informatie op te halen. Probeer het opnieuw.');
       console.error('Error fetching product:', error);
+      setShowManualInput(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const addToTotal = async (quantity: number, name: string, imageUrl: string) => {
+  const handleManualBarcodeSubmit = () => {
+    fetchProductDetails(manualBarcode);
+  };
+
+  const addToTotal = async (quantity: number, name: string, imageUrl: string, originalQuantity: number) => {
     const newTotal = totalQuantity + quantity;
-    const newList = [...productList, { name, quantity, imageUrl }];
+    const newList = [...productList, { name, quantity, originalQuantity, imageUrl, date: dayjs().format('YYYY-MM-DD') }];
     setTotalQuantity(newTotal);
     setProductList(newList);
     await Promise.all([
       AsyncStorage.setItem('totalQuantity', newTotal.toString()),
       AsyncStorage.setItem('productList', JSON.stringify(newList))
     ]);
-    setProductInfo({ name, quantity, imageUrl });
+    setProductInfo({ name, quantity, originalQuantity, imageUrl, date: dayjs().format('YYYY-MM-DD') });
   };
 
   const addCupToTotal = () => {
     if (cupSize) {
-      addToTotal(cupSize, 'Cup of Water', './glass-of-water.jpg');
+      addToTotal(cupSize, 'Cup of Water', './glass-of-water.jpg', cupSize);
     }
   };
 
@@ -100,6 +130,13 @@ const App: React.FC = () => {
   const progress = totalQuantity / goal;
   const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
 
+  if (hasPermission === null) {
+    return <Text>Requesting for camera permission</Text>;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
   return (
     <ScrollView contentContainerStyle="flex-grow justify-center items-center p-5 bg-white">
       <View className="flex-1 w-full justify-center items-center mt-10">
@@ -119,6 +156,27 @@ const App: React.FC = () => {
         >
           <Text className="text-white text-lg font-bold">{isLoading ? 'Loading...' : 'Haal Artikel Op'}</Text>
         </TouchableOpacity>
+        {isCameraVisible && (
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={styles.camera}
+          />
+        )}
+        {showManualInput && (
+          <View style={styles.manualInputContainer}>
+            <Text style={styles.infoText}>Enter Barcode Manually:</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={(text) => setManualBarcode(text)}
+              value={manualBarcode}
+              placeholder="Enter barcode"
+              keyboardType="numeric"
+            />
+            <TouchableOpacity style={styles.button} onPress={handleManualBarcodeSubmit}>
+              <Text style={styles.buttonText}>Fetch Product</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {productInfo && productInfo.name === 'Cup of Water' && productInfo.imageUrl ? (
           <Image source={require('./glass-of-water.jpg')} className="w-24 h-24 my-2" />
         ) : null}
@@ -151,6 +209,7 @@ const App: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
+        
         {isCupInputVisible ? (
           <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
             <TextInput
