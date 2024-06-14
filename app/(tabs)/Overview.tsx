@@ -98,7 +98,7 @@ const ListScreen: React.FC = () => {
           <Text style={styles.totalAmountText}>{totalQuantity} ml</Text>
         </View>
 
-        <Text style={styles.progressText}>Progressie</Text>
+        <Text style={styles.progressText}>Voortgang</Text>
         <Text style={styles.progressSubText}>Overzicht van de hoeveelheid vocht voor vandaag.</Text>
         <Progress.Bar progress={progress} width={null} color={progressBarColor} style={styles.progressBar} />
         <Text style={styles.totalText}>{totalQuantity} / {goal} ml</Text>

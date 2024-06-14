@@ -190,7 +190,7 @@ const App: React.FC = () => {
                 className="bg-white p-2 rounded-lg text-gray-700"
                 onChangeText={(text) => setCupSize(parseFloat(text))}
                 value={cupSize ? cupSize.toString() : ''}
-                placeholder="Enter cup size in ml"
+                placeholder="Vul in glasgrootte in ml"
                 keyboardType="numeric"
               />
               <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={saveCupSize}>
