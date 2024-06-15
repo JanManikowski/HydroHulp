@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
-import Slider from '@react-native-community/slider'; // Import the Slider component
+import Slider from '@react-native-community/slider';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+import dayjs from 'dayjs';
 
 interface ProductInfo {
   name: string;
   quantity: number;
-  imageUrl: string; // Add imageUrl to the ProductInfo interface
+  originalQuantity: number; // Added field for original quantity
+  imageUrl: string;
+  date: string;
 }
 
 const App: React.FC = () => {
@@ -18,7 +22,13 @@ const App: React.FC = () => {
   const [productList, setProductList] = useState<ProductInfo[]>([]);
   const [cupSize, setCupSize] = useState<number | null>(null);
   const [isCupInputVisible, setIsCupInputVisible] = useState<boolean>(true);
-  const [sliderValue, setSliderValue] = useState<number>(100); // Start the slider at 100%
+  const [sliderValue, setSliderValue] = useState<number>(0);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState<boolean>(false);
+  const [isCameraVisible, setIsCameraVisible] = useState<boolean>(false);
+  const [showManualInput, setShowManualInput] = useState<boolean>(false);
+  const [manualBarcode, setManualBarcode] = useState<string>('');
+
   const goal = 1500;
 
   useEffect(() => {
@@ -38,40 +48,60 @@ const App: React.FC = () => {
     loadInitialData();
   }, []);
 
-  const fetchProductDetails = async () => {
-    if (!barcode.trim()) return alert('Please enter a barcode.');
+  useEffect(() => {
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const handleBarCodeScanned = ({ type, data }) => {
+    setScanned(true);
+    setBarcode(data);
+    setIsCameraVisible(false);
+    fetchProductDetails(data);
+  };
+
+  const fetchProductDetails = async (barcode: string) => {
     setIsLoading(true);
+    setShowManualInput(false);
     try {
       const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${barcode}.json`);
       const data = await response.json();
       if (data.status === 0) return alert('Product not found.'), setProductInfo(null);
 
       const quantity = parseFloat(data.product.product_quantity || data.product.serving_quantity || '0') || 0;
-      const imageUrl = data.product.image_url || ''; // Extract the image_url from the API response
-      setProductInfo({ name: data.product.product_name, quantity, imageUrl });
+      const imageUrl = data.product.image_url || '';
+      setProductInfo({ name: data.product.product_name, quantity, originalQuantity: quantity, imageUrl, date: dayjs().format('YYYY-MM-DD') });
+      setSliderValue(quantity);
     } catch (error) {
       alert('Failed to fetch product details. Please try again.');
       console.error('Error fetching product:', error);
+      setShowManualInput(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const addToTotal = async (quantity: number, name: string, imageUrl: string) => {
+  const handleManualBarcodeSubmit = () => {
+    fetchProductDetails(manualBarcode);
+  };
+
+  const addToTotal = async (quantity: number, name: string, imageUrl: string, originalQuantity: number) => {
     const newTotal = totalQuantity + quantity;
-    const newList = [...productList, { name, quantity, imageUrl }];
+    const newList = [...productList, { name, quantity, originalQuantity, imageUrl, date: dayjs().format('YYYY-MM-DD') }];
     setTotalQuantity(newTotal);
     setProductList(newList);
     await Promise.all([
       AsyncStorage.setItem('totalQuantity', newTotal.toString()),
       AsyncStorage.setItem('productList', JSON.stringify(newList))
     ]);
-    setProductInfo({ name, quantity, imageUrl });
+    setProductInfo({ name, quantity, originalQuantity, imageUrl, date: dayjs().format('YYYY-MM-DD') });
   };
 
   const addCupToTotal = () => {
     if (cupSize) {
-      addToTotal(cupSize, 'Cup of Water', './glass-of-water.jpg');
+      addToTotal(cupSize, 'Cup of Water', './glass-of-water.jpg', cupSize);
     }
   };
 
@@ -99,57 +129,77 @@ const App: React.FC = () => {
   const progress = totalQuantity / goal;
   const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
 
+  if (hasPermission === null) {
+    return <Text>Requesting for camera permission</Text>;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <Text style={styles.title}>Product Scanner</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={setBarcode}
-          value={barcode}
-          placeholder="Enter barcode"
-          keyboardType="numeric"
-          placeholderTextColor="#8dd6ed"
-        />
         <TouchableOpacity
           style={styles.button}
-          onPress={fetchProductDetails}
-          disabled={isLoading}
+          onPress={() => {
+            setIsCameraVisible(true);
+            setScanned(false);
+          }}
         >
-          <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Fetch Product'}</Text>
+          <Text style={styles.buttonText}>Scan Barcode</Text>
         </TouchableOpacity>
+        {isCameraVisible && (
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={styles.camera}
+          />
+        )}
+        {showManualInput && (
+          <View style={styles.manualInputContainer}>
+            <Text style={styles.infoText}>Enter Barcode Manually:</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={(text) => setManualBarcode(text)}
+              value={manualBarcode}
+              placeholder="Enter barcode"
+              keyboardType="numeric"
+            />
+            <TouchableOpacity style={styles.button} onPress={handleManualBarcodeSubmit}>
+              <Text style={styles.buttonText}>Fetch Product</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {productInfo && productInfo.name === 'Cup of Water' && productInfo.imageUrl ? (
           <Image source={require('./glass-of-water.jpg')} style={styles.productImage} />
         ) : null}
         {productInfo && productInfo.name !== 'Cup of Water' && (
           <View style={styles.result}>
             <Text style={styles.infoText}>Name: {productInfo.name}</Text>
-            <Text style={styles.infoText}>Quantity: {productInfo.quantity}</Text>
+            <Text style={styles.infoText}>Quantity: {productInfo.quantity}ml</Text>
             {productInfo.imageUrl ? (
               <Image source={{ uri: productInfo.imageUrl }} style={styles.productImage} />
             ) : null}
-            <TouchableOpacity style={styles.button} onPress={() => addToTotal(productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-              <Text style={styles.buttonText}>Add to Total</Text>
-            </TouchableOpacity>
+            {productInfo && productInfo.name !== 'Cup of Water' && (
+              <View style={styles.sliderContainer}>
+                <Text style={styles.infoText}>Adjust Quantity:</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={productInfo.originalQuantity} // Use originalQuantity here
+                  step={1}
+                  value={sliderValue}
+                  onValueChange={(value) => setSliderValue(value)}
+                />
+                <Text style={styles.infoText}>Selected Quantity: {sliderValue}ml</Text>
+                <TouchableOpacity style={styles.button} onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
+                  <Text style={styles.buttonText}>Add to Total</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
-        {productInfo && productInfo.name !== 'Cup of Water' && (
-          <View style={styles.sliderContainer}>
-            <Text style={styles.infoText}>Adjust Quantity:</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={100} // Maximum value set to 100 for full percentage
-              step={1}
-              value={sliderValue}
-              onValueChange={(value) => setSliderValue(value)}
-            />
-            <Text style={styles.infoText}>Selected Quantity: {sliderValue}%</Text>
-            <TouchableOpacity style={styles.button} onPress={() => addToTotal((sliderValue / 100) * productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-              <Text style={styles.buttonText}>Add Selected Quantity to Total</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        
         {isCupInputVisible ? (
           <View style={styles.result}>
             <TextInput
@@ -261,6 +311,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 20,
     color: '#8dd6ed',
+  },
+  camera: {
+    height: 300,
+    width: '100%',
+    marginVertical: 20,
+  },
+  manualInputContainer: {
+    marginTop: 20,
+    padding: 10,
+    borderColor: '#8dd6ed',
+    borderWidth: 1,
+    borderRadius: 5,
+    backgroundColor: '#ffffff',
+    width: '100%',
+    alignItems: 'center',
   },
 });
 
