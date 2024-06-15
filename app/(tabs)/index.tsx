@@ -1,8 +1,8 @@
+import Slider from '@react-native-community/slider';
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, SafeAreaView, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
-import Slider from '@react-native-community/slider';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import dayjs from 'dayjs';
 
@@ -15,11 +15,10 @@ interface ProductInfo {
 }
 
 const App: React.FC = () => {
-  const [barcode, setBarcode] = useState<string>('');
   const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalQuantity, setTotalQuantity] = useState<number>(0);
   const [productList, setProductList] = useState<ProductInfo[]>([]);
+  const [latestProduct, setLatestProduct] = useState<ProductInfo | null>(null);
   const [cupSize, setCupSize] = useState<number | null>(null);
   const [isCupInputVisible, setIsCupInputVisible] = useState<boolean>(true);
   const [sliderValue, setSliderValue] = useState<number>(0);
@@ -28,21 +27,22 @@ const App: React.FC = () => {
   const [isCameraVisible, setIsCameraVisible] = useState<boolean>(false);
   const [showManualInput, setShowManualInput] = useState<boolean>(false);
   const [manualBarcode, setManualBarcode] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [barcode, setBarcode] = useState<string>('');
 
   const goal = 1500;
 
   useEffect(() => {
     const loadInitialData = async () => {
-      const [total, list, storedCupSize] = await Promise.all([
+      const [total, list] = await Promise.all([
         AsyncStorage.getItem('totalQuantity'),
-        AsyncStorage.getItem('productList'),
-        AsyncStorage.getItem('cupSize')
+        AsyncStorage.getItem('productList')
       ]);
       if (total) setTotalQuantity(parseFloat(total));
-      if (list) setProductList(JSON.parse(list));
-      if (storedCupSize) {
-        setCupSize(parseFloat(storedCupSize));
-        setIsCupInputVisible(false);
+      if (list) {
+        const parsedList = JSON.parse(list);
+        setProductList(parsedList);
+        setLatestProduct(parsedList[parsedList.length - 1] || null);
       }
     };
     loadInitialData();
@@ -92,6 +92,7 @@ const App: React.FC = () => {
     const newList = [...productList, { name, quantity, originalQuantity, imageUrl, date: dayjs().format('YYYY-MM-DD') }];
     setTotalQuantity(newTotal);
     setProductList(newList);
+    setLatestProduct(newList[newList.length - 1]);
     await Promise.all([
       AsyncStorage.setItem('totalQuantity', newTotal.toString()),
       AsyncStorage.setItem('productList', JSON.stringify(newList))
@@ -137,196 +138,129 @@ const App: React.FC = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Product Scanner</Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            setIsCameraVisible(true);
-            setScanned(false);
-          }}
-        >
-          <Text style={styles.buttonText}>Scan Barcode</Text>
-        </TouchableOpacity>
-        {isCameraVisible && (
-          <BarCodeScanner
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-            style={styles.camera}
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="p-4">
+        <View className="flex-row items-center mb-4">
+          <View>
+            <Text className="text-3xl text-gray-700">Hallo,</Text>
+            <Text className="text-3xl font-bold text-gray-700">Hendrik de Vries</Text>
+          </View>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/150' }}
+            className="w-12 h-12 rounded-full ml-auto"
           />
-        )}
+        </View>
+        <View className="flex-1">
+          <View className="flex-row justify-between mb-4">
+            <TouchableOpacity className="bg-blue-200 p-5 rounded-lg flex-1 mx-2">
+              <Image source={require('./icon.png')} className="w-12 h-12" />
+              <Text className="text-lg text-gray-700 mt-2">Glas water</Text>
+              <View className="flex-row items-center">
+                <Text className="text-lg text-gray-700">1</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-blue-200 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-gray-700 mb-2">Laatst toegevoegd</Text>
+            {latestProduct && (
+              <View className="flex-row items-center">
+                <Image source={{ uri: latestProduct.imageUrl }} className="w-12 h-12 rounded mr-2" />
+                <View className="flex-1 flex-row justify-between items-center">
+                  <Text className="text-lg text-gray-700">{latestProduct.name}</Text>
+                  <Text className="text-lg text-gray-700">{latestProduct.quantity}ml</Text>
+                  <View className="flex-row items-center">
+                    <TouchableOpacity className="bg-blue-500 rounded p-2 mr-2">
+                      <Text className="text-lg text-white">-</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="bg-blue-500 rounded p-2">
+                      <Text className="text-lg text-white">+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {isCupInputVisible && (
+            <View className="bg-blue-200 p-5 rounded-lg mb-4">
+              <TextInput
+                className="bg-white p-2 rounded-lg text-gray-700"
+                onChangeText={(text) => setCupSize(parseFloat(text))}
+                value={cupSize ? cupSize.toString() : ''}
+                placeholder="Enter cup size in ml"
+                keyboardType="numeric"
+              />
+              <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={saveCupSize}>
+                <Text className="text-lg text-white">Save Cup</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View className="bg-primary mb-4">         
+            <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam, doloremque.</Text>
+          </View>
+
+          <TouchableOpacity className="bg-blue-600 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-white">Bekijk uw dagoverzicht</Text>
+          </TouchableOpacity>
+
+          <Text className="text-lg text-gray-700 mb-5">Voortgang</Text>
+          <Text className="text-sm text-gray-600 mb-2">De hoeveelheid milliliter vochtinname van vandaag.</Text>
+          <Progress.Bar progress={progress} width={null} color={progressBarColor} />
+          <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ML</Text>
+        </View>
+
         {showManualInput && (
-          <View style={styles.manualInputContainer}>
-            <Text style={styles.infoText}>Enter Barcode Manually:</Text>
+          <View className="bg-blue-200 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-gray-700 mb-2">Enter Barcode Manually:</Text>
             <TextInput
-              style={styles.input}
+              className="bg-white p-2 rounded-lg text-gray-700"
               onChangeText={(text) => setManualBarcode(text)}
               value={manualBarcode}
               placeholder="Enter barcode"
               keyboardType="numeric"
             />
-            <TouchableOpacity style={styles.button} onPress={handleManualBarcodeSubmit}>
-              <Text style={styles.buttonText}>Fetch Product</Text>
+            <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={handleManualBarcodeSubmit}>
+              <Text className="text-lg text-white">Fetch Product</Text>
             </TouchableOpacity>
           </View>
         )}
-        {productInfo && productInfo.name === 'Cup of Water' && productInfo.imageUrl ? (
-          <Image source={require('./glass-of-water.jpg')} style={styles.productImage} />
-        ) : null}
-        {productInfo && productInfo.name !== 'Cup of Water' && (
-          <View style={styles.result}>
-            <Text style={styles.infoText}>Name: {productInfo.name}</Text>
-            <Text style={styles.infoText}>Quantity: {productInfo.quantity}ml</Text>
-            {productInfo.imageUrl ? (
-              <Image source={{ uri: productInfo.imageUrl }} style={styles.productImage} />
-            ) : null}
-            {productInfo && productInfo.name !== 'Cup of Water' && (
-              <View style={styles.sliderContainer}>
-                <Text style={styles.infoText}>Adjust Quantity:</Text>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={productInfo.originalQuantity} // Use originalQuantity here
-                  step={1}
-                  value={sliderValue}
-                  onValueChange={(value) => setSliderValue(value)}
-                />
-                <Text style={styles.infoText}>Selected Quantity: {sliderValue}ml</Text>
-                <TouchableOpacity style={styles.button} onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
-                  <Text style={styles.buttonText}>Add to Total</Text>
-                </TouchableOpacity>
-              </View>
+
+        {isCameraVisible && (
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={{ height: 300, width: '100%', marginVertical: 20 }}
+          />
+        )}
+
+        {productInfo && (
+          <View className="bg-blue-200 p-5 rounded-lg mb-4">
+            <Text className="text-lg text-gray-700 mb-2">Name: {productInfo.name}</Text>
+            <Text className="text-lg text-gray-700 mb-2">Quantity: {productInfo.quantity}ml</Text>
+            {productInfo.imageUrl && (
+              <Image source={{ uri: productInfo.imageUrl }} className="w-24 h-24 rounded mb-2" />
             )}
+            <View className="mt-2">
+              <Text className="text-lg text-gray-700 mb-2">Adjust Quantity:</Text>
+              <Slider
+                style={{ width: '100%', height: 40 }}
+                minimumValue={0}
+                maximumValue={productInfo.originalQuantity} // Use originalQuantity here
+                step={1}
+                value={sliderValue}
+                onValueChange={(value) => setSliderValue(value)}
+              />
+              <Text className="text-lg text-gray-700 text-center mt-2">Selected Quantity: {sliderValue}ml</Text>
+              <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
+                <Text className="text-lg text-white">Add to Total</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
-        
-        {isCupInputVisible ? (
-          <View style={styles.result}>
-            <TextInput
-              style={styles.input}
-              onChangeText={(text) => setCupSize(parseFloat(text))}
-              value={cupSize ? cupSize.toString() : ''}
-              placeholder="Enter cup size in ml"
-              keyboardType="numeric"
-              placeholderTextColor="#8dd6ed"
-            />
-            <TouchableOpacity style={styles.button} onPress={saveCupSize}>
-              <Text style={styles.buttonText}>Save Cup</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.result}>
-            <Text style={styles.infoText}>Cup Size: {cupSize} ml</Text>
-            <TouchableOpacity style={styles.button} onPress={addCupToTotal}>
-              <Text style={styles.buttonText}>Add 1 Cup</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={editCupSize}>
-              <Text style={styles.buttonText}>Edit Cup Size</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <Progress.Bar progress={progress} width={400} color={progressBarColor} />
-        <Text style={styles.totalText}>Total Quantity: {totalQuantity} ml / {goal} ml</Text>
-        <TouchableOpacity style={styles.button} onPress={clearAll}>
-          <Text style={styles.buttonText}>Clear All</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#ffffff',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#8dd6ed',
-  },
-  input: {
-    width: '100%',
-    height: 40,
-    borderColor: '#8dd6ed',
-    borderWidth: 1,
-    marginBottom: 20,
-    padding: 10,
-    color: '#000000',
-    backgroundColor: '#ffffff',
-  },
-  button: {
-    backgroundColor: '#8dd6ed',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  result: {
-    marginTop: 20,
-    padding: 10,
-    borderColor: '#8dd6ed',
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: '#ffffff',
-    width: '100%',
-    alignItems: 'center',
-  },
-  productImage: {
-    width: 100,
-    height: 100,
-    marginVertical: 10,
-  },
-  sliderContainer: {
-    marginTop: 20,
-    width: '100%',
-    alignItems: 'center',
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  infoText: {
-    fontSize: 16,
-    marginVertical: 5,
-    color: '#000000',
-  },
-  totalText: {
-    fontSize: 18,
-    marginTop: 20,
-    color: '#8dd6ed',
-  },
-  camera: {
-    height: 300,
-    width: '100%',
-    marginVertical: 20,
-  },
-  manualInputContainer: {
-    marginTop: 20,
-    padding: 10,
-    borderColor: '#8dd6ed',
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: '#ffffff',
-    width: '100%',
-    alignItems: 'center',
-  },
-});
 
 export default App;

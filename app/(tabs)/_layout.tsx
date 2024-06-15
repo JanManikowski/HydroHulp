@@ -24,11 +24,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ListScreen"
+        name="Scanner"
         options={{
-          title: 'ProductList',
+          title: 'Scanner',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIcon name={focused ? 'scan' : 'scan-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Overview"
+        options={{
+          title: 'Overzicht',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'list' : 'list-outline'} color={color} />
           ),
         }}
       />
