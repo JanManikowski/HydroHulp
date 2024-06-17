@@ -194,7 +194,7 @@ const App: React.FC = () => {
                 keyboardType="numeric"
               />
               <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={saveCupSize}>
-                <Text className="text-lg text-white">Save Cup</Text>
+                <Text className="text-lg text-white">Glas Toevoegen</Text>
               </TouchableOpacity>
             </View>
           )}
