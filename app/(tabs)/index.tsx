@@ -1,15 +1,18 @@
 import Slider from '@react-native-community/slider';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, SafeAreaView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, SafeAreaView, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import dayjs from 'dayjs';
+import * as Notifications from 'expo-notifications';
+import * as Permissions from 'expo-permissions';
+import { scheduleRepeatingNotification } from './notificationHelper';
 
 interface ProductInfo {
   name: string;
   quantity: number;
-  originalQuantity: number; // Added field for original quantity
+  originalQuantity: number;
   imageUrl: string;
   date: string;
 }
@@ -52,6 +55,19 @@ const App: React.FC = () => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
+    })();
+
+    (async () => {
+      const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+      if (status !== 'granted') {
+        const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+        if (status !== 'granted') {
+          Alert.alert('Failed to get push token for push notification!');
+          return;
+        }
+      }
+      // Schedule the repeating notification after getting permission
+      await scheduleRepeatingNotification();
     })();
   }, []);
 
