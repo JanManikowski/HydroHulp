@@ -147,7 +147,7 @@ const App: React.FC = () => {
           </Text>
 
           <TouchableOpacity
-            className="bg-primary py-2 px-5 rounded-full my-2 mb-4"
+            className="bg-primary py-2 px-5 rounded-full my-2 mb-4 "
             onPress={fetchProductDetails}
             disabled={isLoading}
           >
