@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import Slider from '@react-native-community/slider';
@@ -132,10 +132,10 @@ const App: React.FC = () => {
   const progressBarColor = totalQuantity > goal ? 'bg-red' : 'bg-tertiary';
 
   if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
+    return <Text>Cameratoegang opvragen</Text>;
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return <Text>Geen toegang om de camera te gebruiken</Text>;
   }
 
   return (
@@ -147,19 +147,19 @@ const App: React.FC = () => {
           </Text>
 
           <TouchableOpacity
-            className="bg-primary py-2 px-5 rounded-full my-2 mb-4 "
+            className="bg-primary py-2 px-5 rounded-full my-2 mb-4"
             onPress={fetchProductDetails}
             disabled={isLoading}
           >
             <Text className="text-white text-lg font-bold">{isLoading ? 'Loading...' : 'Haal Artikel Op'}</Text>
           </TouchableOpacity>
 
-          {isCameraVisible && (
+
             <BarCodeScanner
               onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
               style={styles.camera}
             />
-          )}
+
           
           {/* {showManualInput && (
             <View className="">
@@ -195,20 +195,20 @@ const App: React.FC = () => {
           ) : null}
           {productInfo && productInfo.name !== 'Cup of Water' && (
             <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
-              <Text className="text-lg text-black mb-2">Name: {productInfo.name}</Text>
-              <Text className="text-lg text-black mb-2">Quantity: {productInfo.quantity}</Text>
+              <Text className="text-lg text-black mb-2">Naam: {productInfo.name}</Text>
+              <Text className="text-lg text-black mb-2">Hoeveelheid: {productInfo.quantity} ml</Text>
               {productInfo.imageUrl ? (
                 <Image source={{ uri: productInfo.imageUrl }} className="w-24 h-24 my-2" />
               ) : null}
               <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={() => addToTotal(productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-                <Text className="text-white text-lg font-bold">Add to Total</Text>
+                <Text className="text-white text-lg font-bold">Toevoegen aan totaal</Text>
               </TouchableOpacity>
             </View>
           )}
 
           {productInfo && productInfo.name !== 'Cup of Water' && (
             <View className="mt-5 w-full items-center">
-              <Text className="text-lg text-black mb-2">Adjust Quantity:</Text>
+              <Text className="text-lg text-black mb-2">Hoeveelheid aanpassen:</Text>
               <Slider
                 style={{ width: '100%', height: 40 }}
                 minimumValue={0}
@@ -217,9 +217,9 @@ const App: React.FC = () => {
                 value={sliderValue}
                 onValueChange={(value) => setSliderValue(value)}
               />
-              <Text className="text-lg text-black mb-2">Selected Quantity: {sliderValue}%</Text>
+              <Text className="text-lg text-black mb-2">Geselecteerde hoeveelheid: {sliderValue}%</Text>
               <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={() => addToTotal((sliderValue / 100) * productInfo.quantity, productInfo.name, productInfo.imageUrl)}>
-                <Text className="text-white text-lg font-bold">Add Selected Quantity to Total</Text>
+                <Text className="text-white text-lg font-bold">Voeg geselecteerde hoeveelheid toe</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -229,21 +229,61 @@ const App: React.FC = () => {
           </Text>
 
           {isCupInputVisible ? (
-            <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
-              <TextInput
-                className="w-full h-10 border border-primary mb-5 p-2 text-black bg-white"
-                onChangeText={(text) => setCupSize(parseFloat(text))}
-                value={cupSize ? cupSize.toString() : ''}
-                placeholder="Vul in glasgrootte in ml"
-                keyboardType="numeric"
-                placeholderTextColor="#8dd6ed"
-              />
-              <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={saveCupSize}>
-                <Text className="text-white text-lg font-bold">Glasgrootte opslaan</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View className="mt-5 p-2 rounded-lg bg-secondary-20 w-full items-center">
+              <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
+                <TextInput
+                  className="w-full h-10 border border-primary mb-5 p-2 text-black bg-white"
+                  onChangeText={(text) => setCupSize(parseFloat(text))}
+                  value={cupSize ? cupSize.toString() : ''}
+                  placeholder="Vul in glasgrootte in ml"
+                  keyboardType="numeric"
+                  placeholderTextColor="#8dd6ed"
+                />
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={saveCupSize}>
+                  <Text className="text-white text-lg font-bold">Glasgrootte opslaan</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="mt-5 p-2 rounded-lg bg-secondary-20 items-center w-full">
+                <Text className="text-lg text-black mb-2">Glas Grootte: {cupSize} ml</Text>
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={addCupToTotal}>
+                  <Text className="text-white text-lg font-bold">Voeg 1 Glas Toe</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={editCupSize}>
+                  <Text className="text-white text-lg font-bold">Glas grootte aanpassen</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+
+
+          {/* <View className="w-full flex-row">
+            {isCupInputVisible ? (
+              <View className="mt-5 p-2 border border-primary rounded bg-white w-full items-center">
+                <TextInput
+                  className="w-full h-10 border border-primary mb-5 p-2 text-black bg-white"
+                  onChangeText={(text) => setCupSize(parseFloat(text))}
+                  value={cupSize ? cupSize.toString() : ''}
+                  placeholder="Vul in glasgrootte in ml"
+                  keyboardType="numeric"
+                  placeholderTextColor="#8dd6ed"
+                />
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={saveCupSize}>
+                  <Text className="text-white text-lg font-bold">Glasgrootte opslaan</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="mt-5 p-2 rounded-lg bg-secondary-20 items-center">
+                <Text className="text-lg text-black mb-2">Glas Grootte: {cupSize} ml</Text>
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={addCupToTotal}>
+                  <Text className="text-white text-lg font-bold">Voeg 1 Glas Toe</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={editCupSize}>
+                  <Text className="text-white text-lg font-bold">Glas grootte aanpassen</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View className="mt-5 p-2 rounded-lg bg-secondary-20  items-center">
               <Text className="text-lg text-black mb-2">Glas Grootte: {cupSize} ml</Text>
               <TouchableOpacity className="bg-primary py-2 px-5 rounded-full my-2" onPress={addCupToTotal}>
                 <Text className="text-white text-lg font-bold">Voeg 1 Glas Toe</Text>
@@ -252,7 +292,11 @@ const App: React.FC = () => {
                 <Text className="text-white text-lg font-bold">Glas grootte aanpassen</Text>
               </TouchableOpacity>
             </View>
-          )}
+
+          </View> */}
+
+
+
 
 
           {/* <View>
@@ -270,5 +314,15 @@ const App: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+
+const styles = StyleSheet.create({
+  camera: {
+    height: 300,
+    width: '100%',
+    marginVertical: 20,
+  },
+});
+
 
 export default App;

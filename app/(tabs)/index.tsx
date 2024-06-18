@@ -130,7 +130,7 @@ const App: React.FC = () => {
   };
 
   const progress = totalQuantity / goal;
-  const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
+  const progressBarColor = totalQuantity > goal ? 'red' : '#008080';
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -154,7 +154,14 @@ const App: React.FC = () => {
         </View>
         <View className="flex-1">
           <View className="flex-row justify-between mb-4">
-            <TouchableOpacity className="bg-blue-200 p-5 rounded-lg flex-1 mx-2">
+            <TouchableOpacity className="bg-secondary-20 p-5 rounded-lg flex-1 mx-2">
+              <Image source={require('./icon.png')} className="w-12 h-12" />
+              <Text className="text-lg text-gray-700 mt-2">Glas water</Text>
+              <View className="flex-row items-center">
+                <Text className="text-lg text-gray-700">1</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity className="bg-secondary-20 p-5 rounded-lg flex-1 mx-2">
               <Image source={require('./icon.png')} className="w-12 h-12" />
               <Text className="text-lg text-gray-700 mt-2">Glas water</Text>
               <View className="flex-row items-center">
@@ -163,7 +170,7 @@ const App: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <View className="bg-blue-200 p-5 rounded-lg mb-4">
+          <View className="bg-secondary-20 p-5 rounded-lg mb-4">
             <Text className="text-lg text-gray-700 mb-2">Laatst toegevoegd</Text>
             {latestProduct && (
               <View className="flex-row items-center">
@@ -172,10 +179,10 @@ const App: React.FC = () => {
                   <Text className="text-lg text-gray-700">{latestProduct.name}</Text>
                   <Text className="text-lg text-gray-700">{latestProduct.quantity}ml</Text>
                   <View className="flex-row items-center">
-                    <TouchableOpacity className="bg-blue-500 rounded p-2 mr-2">
+                    <TouchableOpacity className="bg-primary rounded p-2 mr-2">
                       <Text className="text-lg text-white">-</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity className="bg-blue-500 rounded p-2">
+                    <TouchableOpacity className="bg-primary rounded p-2">
                       <Text className="text-lg text-white">+</Text>
                     </TouchableOpacity>
                   </View>
@@ -185,7 +192,7 @@ const App: React.FC = () => {
           </View>
 
           {isCupInputVisible && (
-            <View className="bg-blue-200 p-5 rounded-lg mb-4">
+            <View className="bg-secondary-20 p-5 rounded-lg mb-4">
               <TextInput
                 className="bg-white p-2 rounded-lg text-gray-700"
                 onChangeText={(text) => setCupSize(parseFloat(text))}
@@ -193,7 +200,7 @@ const App: React.FC = () => {
                 placeholder="Vul in glasgrootte in ml"
                 keyboardType="numeric"
               />
-              <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={saveCupSize}>
+              <TouchableOpacity className="bg-primary p-2 rounded-lg mt-2" onPress={saveCupSize}>
                 <Text className="text-lg text-white">Glas Toevoegen</Text>
               </TouchableOpacity>
             </View>
@@ -203,7 +210,7 @@ const App: React.FC = () => {
             <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam, doloremque.</Text>
           </View> */}
 
-          <TouchableOpacity className="bg-blue-600 p-5 rounded-lg mb-4" onPress={() => navigation.navigate('Details')}>
+          <TouchableOpacity className="bg-primary p-5 rounded-lg mb-4" onPress={() => navigation.navigate('Details')}>
             <Text className="text-lg text-white">Bekijk uw dagoverzicht</Text>
           </TouchableOpacity>
 
@@ -223,7 +230,7 @@ const App: React.FC = () => {
               placeholder="Enter barcode"
               keyboardType="numeric"
             />
-            <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={handleManualBarcodeSubmit}>
+            <TouchableOpacity className="bg-primary p-2 rounded-lg mt-2" onPress={handleManualBarcodeSubmit}>
               <Text className="text-lg text-white">Fetch Product</Text>
             </TouchableOpacity>
           </View>
@@ -254,7 +261,7 @@ const App: React.FC = () => {
                 onValueChange={(value) => setSliderValue(value)}
               />
               <Text className="text-lg text-gray-700 text-center mt-2">Selected Quantity: {sliderValue}ml</Text>
-              <TouchableOpacity className="bg-blue-600 p-2 rounded-lg mt-2" onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
+              <TouchableOpacity className="bg-primary p-2 rounded-lg mt-2" onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
                 <Text className="text-lg text-white">Add to Total</Text>
               </TouchableOpacity>
             </View>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
+import { styled } from 'nativewind';
 
 interface ProductInfo {
   name: string;
@@ -44,213 +45,67 @@ const ListScreen: React.FC = () => {
   const filteredProducts = productList.filter(product => dayjs(product.date).isSame(currentDate, 'day'));
 
   const progress = totalQuantity / goal;
-  const progressBarColor = totalQuantity > goal ? 'red' : '#8dd6ed';
+  const progressBarColor = totalQuantity > goal ? 'red' : '#008080';
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.header}>
+    <ScrollView className="flex-grow bg-white p-5">
+      <View className="flex-row items-center mb-5">
         <View>
-          <Text style={styles.greeting}>Hallo</Text>
-          <Text style={styles.userName}>Hendrik de Vries</Text>
+          <Text className="text-xl text-gray-800">Hallo</Text>
+          <Text className="text-xl font-bold text-gray-800 ml-2">Hendrik de Vries</Text>
         </View>
         <Image
           source={{ uri: 'https://via.placeholder.com/150' }}
-          style={styles.userImage}
+          className="w-12 h-12 rounded-full ml-auto"
         />
       </View>
 
-      <View style={styles.dateContainer}>
-        <TouchableOpacity style={styles.dateButton} onPress={() => changeDate(-1)}>
-          <Text style={styles.dateButtonText}>{'<'}</Text>
+      <View className="flex-row items-center justify-center mb-2">
+        <TouchableOpacity className="p-2" onPress={() => changeDate(-1)}>
+          <Text className="text-lg text-gray-800">{'<'}</Text>
         </TouchableOpacity>
-        <Text style={styles.dateText}>Vandaag</Text>
-        <TouchableOpacity style={styles.dateButton} onPress={() => changeDate(1)}>
-          <Text style={styles.dateButtonText}>{'>'}</Text>
+        <Text className="text-lg font-bold text-gray-800 mx-5">Vandaag</Text>
+        <TouchableOpacity className="p-2" onPress={() => changeDate(1)}>
+          <Text className="text-lg text-gray-800">{'>'}</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.dateSubText}>{currentDate.format('DD-MM-YYYY')}</Text>
+      <Text className="text-center text-base text-gray-600 mb-5">{currentDate.format('DD-MM-YYYY')}</Text>
 
-      <View style={styles.container}>
-        <Text style={styles.overviewText}>Dagoverzicht</Text>
+      <View className="flex-1">
+        <Text className="text-lg text-gray-800 mb-2">Dagoverzicht</Text>
         {filteredProducts.map((product, index) => (
-          <View key={index} style={styles.productCard}>
-            <Image source={product.name === 'Cup of Water' ? require('./glass-of-water.jpg') : { uri: product.imageUrl }} style={styles.productImage} />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>{product.name}</Text>
-              <Text style={styles.productQuantity}>{product.quantity}ml</Text>
+          <View key={index} className="flex-row items-center bg-secondary-20 p-5 rounded-lg mb-2">
+            <Image source={product.name === 'Cup of Water' ? require('./glass-of-water.jpg') : { uri: product.imageUrl }} className="w-12 h-12 rounded-md mr-2" />
+            <View className="flex-1 justify-between">
+              <Text className="text-base text-gray-800">{product.name}</Text>
+              <Text className="text-base text-gray-800">{product.quantity}ml</Text>
             </View>
-            <View style={styles.quantityControl}>
-              <TouchableOpacity style={styles.editButton}>
-                <Text style={styles.editButtonText}>✏️</Text>
+            <View className="flex-row items-center">
+              <TouchableOpacity className="bg-white rounded-md p-1 mx-1">
+                <Text className="text-lg text-gray-800">✏️</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.addButton}>
-                <Text style={styles.addButtonText}>-</Text>
+              <TouchableOpacity className="bg-primary rounded-md p-2 mx-1">
+                <Text className="text-lg text-white">-</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.addButton}>
-                <Text style={styles.addButtonText}>+</Text>
+              <TouchableOpacity className="bg-primary rounded-md p-2 mx-1">
+                <Text className="text-lg text-white">+</Text>
               </TouchableOpacity>
             </View>
           </View>
         ))}
 
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalText}>Totaal</Text>
-          <Text style={styles.totalAmountText}>{totalQuantity} ml</Text>
+        <View className="flex-row justify-between p-5 bg-secondary-20 rounded-lg mb-5">
+          <Text className="text-lg text-gray-800">Totaal</Text>
+          <Text className="text-lg text-gray-800">{totalQuantity} ml</Text>
         </View>
 
-        <Text style={styles.progressText}>Voortgang</Text>
-        <Text style={styles.progressSubText}>Overzicht van de hoeveelheid vocht voor vandaag.</Text>
-        <Progress.Bar progress={progress} width={null} color={progressBarColor} style={styles.progressBar} />
-        <Text style={styles.totalText}>{totalQuantity} / {goal} ml</Text>
+        <Text className="text-lg text-gray-800 mb-2">Voortgang</Text>
+        <Text className="text-base text-gray-600 mb-2">Overzicht van de hoeveelheid vocht voor vandaag.</Text>
+        <Progress.Bar progress={progress} width={null} color={progressBarColor} style={{ marginBottom: 20 }} />
+        <Text className="text-lg text-gray-800 text-center">{totalQuantity} / {goal} ml</Text>
       </View>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: '#ffffff',
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  greeting: {
-    fontSize: 24,
-    color: '#333',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 10,
-  },
-  userImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginLeft: 'auto',
-  },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  dateButton: {
-    padding: 10,
-  },
-  dateButtonText: {
-    fontSize: 18,
-    color: '#333',
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginHorizontal: 20,
-  },
-  dateSubText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 20,
-  },
-  container: {
-    flex: 1,
-  },
-  overviewText: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
-  },
-  productCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eaf4fc',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  productInfo: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  productName: {
-    fontSize: 16,
-    color: '#333',
-  },
-  productQuantity: {
-    fontSize: 16,
-    color: '#333',
-  },
-  quantityControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    padding: 5,
-    marginHorizontal: 5,
-  },
-  editButtonText: {
-    fontSize: 18,
-    color: '#333',
-  },
-  addButton: {
-    backgroundColor: '#8dd6ed',
-    borderRadius: 5,
-    padding: 10,
-    marginHorizontal: 5,
-  },
-  addButtonText: {
-    fontSize: 18,
-    color: '#fff',
-  },
-  totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    backgroundColor: '#eaf4fc',
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  totalText: {
-    fontSize: 18,
-    color: '#333',
-  },
-  totalAmountText: {
-    fontSize: 18,
-    color: '#333',
-  },
-  progressText: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 5,
-  },
-  progressSubText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-  },
-  progressBar: {
-    marginBottom: 20,
-  },
-  totalText: {
-    fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-  }
-});
 
 export default ListScreen;
