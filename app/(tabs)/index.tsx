@@ -217,7 +217,7 @@ const App: React.FC = () => {
           <Text className="text-lg text-gray-700 mb-5">Voortgang</Text>
           <Text className="text-sm text-gray-600 mb-2">De hoeveelheid milliliter vochtinname van vandaag.</Text>
           <Progress.Bar progress={progress} width={null} color={progressBarColor} />
-          <Text className="text-lg text-gray-700 text-center mt-5">{totalQuantity} / {goal} ml</Text>
+          <Text className="text-lg text-gray-700 text-center mt-5 mb-10">{totalQuantity} / {goal} ml</Text>
         </View>
 
         {showManualInput && (
@@ -260,7 +260,7 @@ const App: React.FC = () => {
                 value={sliderValue}
                 onValueChange={(value) => setSliderValue(value)}
               />
-              <Text className="text-lg text-gray-700 text-center mt-2">Selected Quantity: {sliderValue}ml</Text>
+              <Text className="text-lg text-gray-700 text-center mt-20">Selected Quantity: {sliderValue}ml</Text>
               <TouchableOpacity className="bg-primary p-2 rounded-lg mt-2" onPress={() => addToTotal(sliderValue, productInfo.name, productInfo.imageUrl, productInfo.originalQuantity)}>
                 <Text className="text-lg text-white">Add to Total</Text>
               </TouchableOpacity>
